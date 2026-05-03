@@ -5,33 +5,17 @@ from rest_framework.permissions import IsAuthenticated
 from posts.models import Comment, Group, Post
 
 from .permissions import IsAuthorOrReadOnly
-from .serializers import (
-    CommentSerializer,
-    GroupSerializer,
-    PostSerializer,
-    PostWithCommentsSerializer,
-)
+from .serializers import CommentSerializer, GroupSerializer, PostSerializer
 
 
 class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
     permission_classes = (IsAuthenticated, IsAuthorOrReadOnly)
-
-    def get_queryset(self):
-        queryset = Post.objects.all()
-
-        if self.request.query_params.get('with_comments') == 'true':
-            queryset = queryset.prefetch_related('comments')
-
-        return queryset
-
-    def get_serializer_class(self):
-        if self.request.query_params.get('with_comments') == 'true':
-            return PostWithCommentsSerializer
-
-        return PostSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Group.objects.all()
